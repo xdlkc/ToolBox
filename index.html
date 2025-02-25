@@ -7,12 +7,21 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/diff/5.1.0/diff.min.js"></script>
+    <script src="vkbeautify.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Programmer's Toolbox</h1>
             <p>A collection of useful tools for developers</p>
+            <div class="theme-toggle">
+                <button id="theme-toggle-btn">
+                    <span class="light-icon">🌞</span>
+                    <span class="dark-icon">🌙</span>
+                </button>
+            </div>
         </header>
 
         <div class="tools-container">
@@ -28,6 +37,10 @@
                     <li data-tool="color-converter">Color Converter</li>
                     <li data-tool="case-converter">Text Case Converter</li>
                     <li data-tool="json-formatter">JSON Formatter</li>
+                    <li data-tool="json-to-xml">JSON to XML</li>
+                    <li data-tool="json-to-code">JSON to Java/Python</li>
+                    <li data-tool="json-to-yaml">JSON to YAML</li>
+                    <li data-tool="text-diff">Text Diff</li>
                 </ul>
             </div>
 
@@ -276,6 +289,77 @@
                     </div>
                 </div>
 
+                <!-- JSON to XML -->
+                <div id="json-to-xml" class="tool-panel">
+                    <h2>JSON to XML Converter</h2>
+                    <div class="input-group">
+                        <label for="json-xml-input">JSON Input:</label>
+                        <textarea id="json-xml-input" placeholder="Enter JSON to convert to XML"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="convert-json-to-xml-btn">Convert to XML</button>
+                        <button class="copy-btn" data-target="json-xml-output">Copy</button>
+                        <button class="clear-btn" data-target="json-xml-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="json-xml-output">XML Output:</label>
+                        <textarea id="json-xml-output" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- JSON to Java/Python -->
+                <div id="json-to-code" class="tool-panel">
+                    <h2>JSON to Java/Python Converter</h2>
+                    <div class="input-group">
+                        <label for="json-code-input">JSON Input:</label>
+                        <textarea id="json-code-input" placeholder="Enter JSON to convert to Java or Python class"></textarea>
+                    </div>
+                    <div class="language-selector">
+                        <label>Target Language:</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="code-language" value="java" checked> Java</label>
+                            <label><input type="radio" name="code-language" value="python"> Python</label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="class-name-input">Class Name:</label>
+                        <input type="text" id="class-name-input" placeholder="Enter class name" value="MyClass">
+                    </div>
+                    <div class="java-options">
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="use-lombok"> Use Lombok (Java only)</label>
+                            <span class="tooltip">Adds @Data, @NoArgsConstructor, and @AllArgsConstructor annotations</span>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button id="convert-json-to-code-btn">Generate Code</button>
+                        <button class="copy-btn" data-target="json-code-output">Copy</button>
+                        <button class="clear-btn" data-target="json-code-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="json-code-output">Code Output:</label>
+                        <textarea id="json-code-output" readonly class="code-output"></textarea>
+                    </div>
+                </div>
+
+                <!-- JSON to YAML -->
+                <div id="json-to-yaml" class="tool-panel">
+                    <h2>JSON to YAML Converter</h2>
+                    <div class="input-group">
+                        <label for="json-yaml-input">JSON Input:</label>
+                        <textarea id="json-yaml-input" placeholder="Enter JSON to convert to YAML"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="convert-json-to-yaml-btn">Convert to YAML</button>
+                        <button class="copy-btn" data-target="json-yaml-output">Copy</button>
+                        <button class="clear-btn" data-target="json-yaml-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="json-yaml-output">YAML Output:</label>
+                        <textarea id="json-yaml-output" readonly></textarea>
+                    </div>
+                </div>
+
                 <!-- Markdown Preview -->
                 <div id="markdown-tool" class="tool-panel">
                     <h2>Markdown Preview</h2>
@@ -328,6 +412,35 @@ code block
 | Cell   | Cell   |</code>
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Text Diff Tool -->
+                <div id="text-diff" class="tool-panel">
+                    <h2>Text Diff Tool</h2>
+                    <div class="diff-container">
+                        <div class="diff-input-container">
+                            <div class="input-header">
+                                <label for="original-text">Original Text:</label>
+                                <button class="clear-btn" data-target="original-text">Clear</button>
+                            </div>
+                            <textarea id="original-text" placeholder="Enter original text here..."></textarea>
+                        </div>
+                        <div class="diff-input-container">
+                            <div class="input-header">
+                                <label for="modified-text">Modified Text:</label>
+                                <button class="clear-btn" data-target="modified-text">Clear</button>
+                            </div>
+                            <textarea id="modified-text" placeholder="Enter modified text here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button id="compare-text-btn">Compare</button>
+                        <button id="swap-text-btn">Swap Texts</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="diff-output">Diff Result:</label>
+                        <div id="diff-output" class="diff-output"></div>
                     </div>
                 </div>
             </div>

@@ -16,6 +16,10 @@ The Programmer's Toolbox includes the following utilities:
 8. **Color Converter**: Convert between HEX, RGB, and HSL color formats
 9. **Text Case Converter**: Transform text to various case formats (uppercase, lowercase, camelCase, etc.)
 10. **JSON Formatter**: Format and validate JSON with pretty-print or minify options
+11. **JSON to XML**: Convert JSON data to XML format
+12. **JSON to Java/Python**: Generate Java or Python classes from JSON data
+13. **JSON to YAML**: Convert JSON data to YAML format
+14. **Text Diff**: Compare two text snippets and highlight the differences
 
 ## Usage
 
@@ -27,6 +31,10 @@ Simply open the `index.html` file in your web browser to use the toolbox. No ser
 - CSS3
 - JavaScript (ES6+)
 - CryptoJS (for hash generation)
+- Marked.js (for Markdown rendering)
+- js-yaml (for YAML conversion)
+- diff (for text comparison)
+- vkbeautify (for XML formatting)
 
 ## Browser Compatibility
 

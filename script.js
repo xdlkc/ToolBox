@@ -501,6 +501,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update preview on input
         markdownInput.addEventListener('input', updateMarkdownPreview);
         
+        // Synchronize scrolling between input and preview
+        markdownInput.addEventListener('scroll', function() {
+            // Calculate the scroll percentage of the input
+            const scrollPercentage = markdownInput.scrollTop / 
+                (markdownInput.scrollHeight - markdownInput.clientHeight);
+            
+            // Apply the same scroll percentage to the preview
+            markdownPreview.scrollTop = scrollPercentage * 
+                (markdownPreview.scrollHeight - markdownPreview.clientHeight);
+        });
+        
+        // Synchronize scrolling from preview to input
+        markdownPreview.addEventListener('scroll', function() {
+            // Calculate the scroll percentage of the preview
+            const scrollPercentage = markdownPreview.scrollTop / 
+                (markdownPreview.scrollHeight - markdownPreview.clientHeight);
+            
+            // Apply the same scroll percentage to the input
+            markdownInput.scrollTop = scrollPercentage * 
+                (markdownInput.scrollHeight - markdownInput.clientHeight);
+        });
+        
         // Copy HTML button
         document.querySelector('.preview-header .copy-btn').addEventListener('click', function() {
             const html = markdownPreview.innerHTML;
@@ -567,4 +589,523 @@ function hello() {
         markdownInput.value = initialMarkdown;
         updateMarkdownPreview();
     }
+
+    // JSON to XML Converter
+    document.getElementById('convert-json-to-xml-btn')?.addEventListener('click', function() {
+        const jsonInput = document.getElementById('json-xml-input').value;
+        const xmlOutput = document.getElementById('json-xml-output');
+        
+        try {
+            // Parse JSON
+            const jsonObj = JSON.parse(jsonInput);
+            
+            // Convert JSON to XML
+            const xml = jsonToXml(jsonObj);
+            
+            // Format XML for readability
+            const formattedXml = formatXml(xml);
+            
+            xmlOutput.value = formattedXml;
+        } catch (e) {
+            xmlOutput.value = 'Error: ' + e.message;
+        }
+    });
+    
+    // Function to convert JSON to XML
+    function jsonToXml(obj, rootName = 'root') {
+        let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<${rootName}>`;
+        
+        // Helper function to convert JSON object to XML
+        function parseObject(obj, parentKey) {
+            for (const key in obj) {
+                const value = obj[key];
+                
+                if (Array.isArray(value)) {
+                    // Handle arrays
+                    for (const item of value) {
+                        if (typeof item === 'object' && item !== null) {
+                            xml += `<${key}>`;
+                            parseObject(item, key);
+                            xml += `</${key}>`;
+                        } else {
+                            xml += `<${key}>${escapeXml(String(item))}</${key}>`;
+                        }
+                    }
+                } else if (typeof value === 'object' && value !== null) {
+                    // Handle nested objects
+                    xml += `<${key}>`;
+                    parseObject(value, key);
+                    xml += `</${key}>`;
+                } else {
+                    // Handle primitive values
+                    xml += `<${key}>${escapeXml(String(value))}</${key}>`;
+                }
+            }
+        }
+        
+        parseObject(obj, rootName);
+        xml += `</${rootName}>`;
+        
+        return xml;
+    }
+    
+    // Function to escape XML special characters
+    function escapeXml(unsafe) {
+        return unsafe
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    }
+    
+    // Add a fallback XML formatter in case vkbeautify is not available
+    function formatXml(xml) {
+        // Simple XML formatter if vkbeautify is not available
+        if (typeof vkbeautify === 'undefined') {
+            let formatted = '';
+            let indent = '';
+            const tab = '  '; // 2 spaces for indentation
+            
+            xml.split(/>\s*</).forEach(function(node) {
+                if (node.match(/^\/\w/)) {
+                    // Closing tag
+                    indent = indent.substring(tab.length);
+                }
+                
+                formatted += indent + '<' + node + '>\n';
+                
+                if (node.match(/^<?\w[^>]*[^\/]$/) && !node.startsWith("?")) {
+                    // Opening tag
+                    indent += tab;
+                }
+            });
+            
+            return formatted.substring(1, formatted.length - 2);
+        } else {
+            // Use vkbeautify if available
+            return vkbeautify.xml(xml);
+        }
+    }
+    
+    // JSON to Java/Python Converter
+    document.getElementById('convert-json-to-code-btn')?.addEventListener('click', function() {
+        const jsonInput = document.getElementById('json-code-input').value;
+        const codeOutput = document.getElementById('json-code-output');
+        const language = document.querySelector('input[name="code-language"]:checked').value;
+        const className = document.getElementById('class-name-input').value || 'MyClass';
+        const useLombok = document.getElementById('use-lombok')?.checked || false;
+        
+        try {
+            // Parse JSON
+            const jsonObj = JSON.parse(jsonInput);
+            
+            // Convert JSON to code
+            let code;
+            if (language === 'java') {
+                code = jsonToJava(jsonObj, className, useLombok);
+            } else {
+                code = jsonToPython(jsonObj, className);
+            }
+            
+            codeOutput.value = code;
+        } catch (e) {
+            codeOutput.value = 'Error: ' + e.message;
+        }
+    });
+    
+    // Toggle Lombok options based on selected language
+    const languageRadios = document.querySelectorAll('input[name="code-language"]');
+    const javaOptions = document.querySelector('.java-options');
+    
+    if (languageRadios && javaOptions) {
+        languageRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'java') {
+                    javaOptions.style.display = 'block';
+                } else {
+                    javaOptions.style.display = 'none';
+                }
+            });
+        });
+        
+        // Set initial state
+        if (document.querySelector('input[name="code-language"]:checked').value !== 'java') {
+            javaOptions.style.display = 'none';
+        }
+    }
+    
+    // Function to convert JSON to Java class
+    function jsonToJava(obj, className, useLombok = false) {
+        // Store all generated classes
+        const nestedClassNames = new Set();
+        
+        // Main function to process a JSON object into a Java class
+        function processClass(obj, className, isNested = false) {
+            let javaCode = '';
+            
+            // Add Lombok annotations if enabled
+            if (useLombok) {
+                javaCode += isNested ? '        @Data\n        @NoArgsConstructor\n        @AllArgsConstructor\n' : 
+                                      '@Data\n@NoArgsConstructor\n@AllArgsConstructor\n';
+            }
+            
+            // Add class declaration with proper indentation for nested classes
+            javaCode += isNested ? '        public static class ' + className + ' {\n' : 
+                                  'public class ' + className + ' {\n';
+            
+            // Add fields
+            for (const key in obj) {
+                const value = obj[key];
+                let javaType = getJavaType(value, key);
+                
+                // Add field declaration with proper indentation
+                javaCode += isNested ? '            private ' + javaType + ' ' + key + ';\n' : 
+                                     '    private ' + javaType + ' ' + key + ';\n';
+            }
+            
+            // If not using Lombok, add constructor and getters/setters
+            if (!useLombok) {
+                javaCode += '\n';
+                
+                // Add constructor
+                javaCode += isNested ? '            public ' + className + '() {\n            }\n\n' : 
+                                     '    public ' + className + '() {\n    }\n\n';
+                
+                // Add all-args constructor
+                javaCode += isNested ? '            public ' + className + '(' : 
+                                     '    public ' + className + '(';
+                const params = [];
+                for (const key in obj) {
+                    const value = obj[key];
+                    let javaType = getJavaType(value, key);
+                    params.push(`${javaType} ${key}`);
+                }
+                javaCode += params.join(', ');
+                javaCode += ') {\n';
+                for (const key in obj) {
+                    javaCode += isNested ? '                this.' + key + ' = ' + key + ';\n' : 
+                                         '        this.' + key + ' = ' + key + ';\n';
+                }
+                javaCode += isNested ? '            }\n\n' : '    }\n\n';
+                
+                // Add getters and setters
+                for (const key in obj) {
+                    const value = obj[key];
+                    let javaType = getJavaType(value, key);
+                    const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+                    
+                    // Add getter
+                    javaCode += isNested ? '            public ' + javaType + ' get' + capitalizedKey + '() {\n' : 
+                                         '    public ' + javaType + ' get' + capitalizedKey + '() {\n';
+                    javaCode += isNested ? '                return ' + key + ';\n' : 
+                                         '        return ' + key + ';\n';
+                    javaCode += isNested ? '            }\n\n' : '    }\n\n';
+                    
+                    // Add setter
+                    javaCode += isNested ? '            public void set' + capitalizedKey + '(' + javaType + ' ' + key + ') {\n' : 
+                                         '    public void set' + capitalizedKey + '(' + javaType + ' ' + key + ') {\n';
+                    javaCode += isNested ? '                this.' + key + ' = ' + key + ';\n' : 
+                                         '        this.' + key + ' = ' + key + ';\n';
+                    javaCode += isNested ? '            }\n\n' : '    }\n\n';
+                }
+            }
+            
+            javaCode += isNested ? '        }' : '}';
+            
+            return javaCode;
+        }
+        
+        // Function to determine Java type from JSON value
+        function getJavaType(value, key) {
+            if (value === null) {
+                return 'Object';
+            }
+            
+            if (Array.isArray(value)) {
+                if (value.length > 0) {
+                    const firstItem = value[0];
+                    if (typeof firstItem === 'object' && firstItem !== null) {
+                        // For arrays of objects, create a nested class
+                        const itemClassName = capitalizeFirstLetter(singularize(key));
+                        if (!nestedClassNames.has(itemClassName)) {
+                            nestedClassNames.add(itemClassName);
+                        }
+                        return `List<${itemClassName}>`;
+                    }
+                    return `List<${getJavaType(firstItem)}>`;
+                }
+                return 'List<Object>';
+            }
+            
+            if (typeof value === 'object' && value !== null) {
+                // For nested objects, create a nested class
+                const nestedClassName = capitalizeFirstLetter(key);
+                if (!nestedClassNames.has(nestedClassName)) {
+                    nestedClassNames.add(nestedClassName);
+                }
+                return nestedClassName;
+            }
+            
+            switch (typeof value) {
+                case 'string':
+                    return 'String';
+                case 'number':
+                    return Number.isInteger(value) ? 'int' : 'double';
+                case 'boolean':
+                    return 'boolean';
+                default:
+                    return 'Object';
+            }
+        }
+        
+        // Helper function to capitalize first letter
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        // Helper function to convert plural to singular (simple version)
+        function singularize(word) {
+            if (word.endsWith('ies')) {
+                return word.slice(0, -3) + 'y';
+            } else if (word.endsWith('s') && !word.endsWith('ss')) {
+                return word.slice(0, -1);
+            }
+            return word;
+        }
+        
+        // Add imports
+        let imports = '';
+        if (useLombok) {
+            imports += `import lombok.Data;\nimport lombok.NoArgsConstructor;\nimport lombok.AllArgsConstructor;\n`;
+        }
+        
+        // Check if we need to import List
+        let needsList = false;
+        for (const key in obj) {
+            if (Array.isArray(obj[key])) {
+                needsList = true;
+                break;
+            }
+        }
+        
+        if (needsList) {
+            imports += `import java.util.List;\n`;
+        }
+        
+        if (imports) {
+            imports += '\n';
+        }
+        
+        // Process the main class
+        let mainClass = processClass(obj, className);
+        
+        // Generate nested classes
+        let nestedClasses = '';
+        
+        // Process nested objects to create nested classes
+        for (const key in obj) {
+            const value = obj[key];
+            
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                // Create nested class for object
+                const nestedClassName = capitalizeFirstLetter(key);
+                nestedClasses += '\n\n' + processClass(value, nestedClassName, true);
+            } else if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0] !== null) {
+                // Create nested class for array items
+                const itemClassName = capitalizeFirstLetter(singularize(key));
+                nestedClasses += '\n\n' + processClass(value[0], itemClassName, true);
+            }
+        }
+        
+        // Insert nested classes before the closing brace of the main class
+        if (nestedClasses) {
+            mainClass = mainClass.replace(/}$/, `${nestedClasses}\n}`);
+        }
+        
+        return imports + mainClass;
+    }
+    
+    // Function to convert JSON to Python class
+    function jsonToPython(obj, className) {
+        // Store all generated classes
+        const generatedClasses = [];
+        const nestedClassNames = new Set();
+        
+        // Main function to process a JSON object into a Python class
+        function processClass(obj, className) {
+            let pythonCode = `class ${className}:\n`;
+            
+            // Add constructor
+            pythonCode += '    def __init__(self';
+            
+            // Add parameters
+            for (const key in obj) {
+                pythonCode += `, ${key}=None`;
+            }
+            
+            pythonCode += '):\n';
+            
+            // Add field assignments
+            for (const key in obj) {
+                pythonCode += `        self.${key} = ${key}\n`;
+            }
+            
+            // Add string representation method
+            pythonCode += '\n    def __str__(self):\n';
+            pythonCode += `        return f"${className}({', '.join([f'{key}={{{key}}}' for key in obj])})"\n`;
+            
+            // Add property getters and setters
+            for (const key in obj) {
+                pythonCode += `\n    @property\n`;
+                pythonCode += `    def ${key}(self):\n`;
+                pythonCode += `        return self._${key}\n`;
+                
+                pythonCode += `\n    @${key}.setter\n`;
+                pythonCode += `    def ${key}(self, value):\n`;
+                pythonCode += `        self._${key} = value\n`;
+            }
+            
+            return pythonCode;
+        }
+        
+        // Function to determine Python type and create nested classes if needed
+        function processPythonType(value, key) {
+            if (value === null) {
+                return;
+            }
+            
+            if (Array.isArray(value) && value.length > 0) {
+                const firstItem = value[0];
+                if (typeof firstItem === 'object' && firstItem !== null) {
+                    // For arrays of objects, create a nested class
+                    const itemClassName = capitalizeFirstLetter(singularize(key));
+                    if (!nestedClassNames.has(itemClassName)) {
+                        nestedClassNames.add(itemClassName);
+                        const nestedClass = processClass(firstItem, itemClassName);
+                        generatedClasses.push(nestedClass);
+                    }
+                }
+            } else if (typeof value === 'object' && value !== null) {
+                // For nested objects, create a nested class
+                const nestedClassName = capitalizeFirstLetter(key);
+                if (!nestedClassNames.has(nestedClassName)) {
+                    nestedClassNames.add(nestedClassName);
+                    const nestedClass = processClass(value, nestedClassName);
+                    generatedClasses.push(nestedClass);
+                }
+            }
+        }
+        
+        // Helper function to capitalize first letter
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        // Helper function to convert plural to singular (simple version)
+        function singularize(word) {
+            if (word.endsWith('ies')) {
+                return word.slice(0, -3) + 'y';
+            } else if (word.endsWith('s') && !word.endsWith('ss')) {
+                return word.slice(0, -1);
+            }
+            return word;
+        }
+        
+        // Process all nested objects first
+        for (const key in obj) {
+            processPythonType(obj[key], key);
+        }
+        
+        // Process the main class
+        const mainClass = processClass(obj, className);
+        
+        // Combine all generated classes
+        return generatedClasses.join('\n\n') + (generatedClasses.length > 0 ? '\n\n' : '') + mainClass;
+    }
+    
+    // JSON to YAML Converter
+    document.getElementById('convert-json-to-yaml-btn')?.addEventListener('click', function() {
+        const jsonInput = document.getElementById('json-yaml-input').value;
+        const yamlOutput = document.getElementById('json-yaml-output');
+        
+        try {
+            // Parse JSON
+            const jsonObj = JSON.parse(jsonInput);
+            
+            // Convert JSON to YAML
+            const yaml = jsyaml.dump(jsonObj);
+            
+            yamlOutput.value = yaml;
+        } catch (e) {
+            yamlOutput.value = 'Error: ' + e.message;
+        }
+    });
+    
+    // Text Diff Tool
+    document.getElementById('compare-text-btn')?.addEventListener('click', function() {
+        const originalText = document.getElementById('original-text').value;
+        const modifiedText = document.getElementById('modified-text').value;
+        const diffOutput = document.getElementById('diff-output');
+        
+        // Compute the diff
+        const diffResult = JsDiff.diffLines(originalText, modifiedText);
+        
+        // Clear previous output
+        diffOutput.innerHTML = '';
+        
+        // Display the diff with line numbers and improved formatting
+        let lineCount = 0;
+        
+        diffResult.forEach(part => {
+            // Split the part into lines
+            const lines = part.value.split('\n');
+            // Remove the last empty line that comes from splitting
+            if (lines[lines.length - 1] === '') lines.pop();
+            
+            // Process each line
+            lines.forEach(line => {
+                const color = part.added ? 'added' : part.removed ? 'removed' : 'unchanged';
+                const span = document.createElement('span');
+                span.className = color;
+                span.textContent = line;
+                diffOutput.appendChild(span);
+            });
+        });
+        
+        // Scroll to the top of the diff output
+        diffOutput.scrollTop = 0;
+    });
+    
+    // Swap text button
+    document.getElementById('swap-text-btn')?.addEventListener('click', function() {
+        const originalTextArea = document.getElementById('original-text');
+        const modifiedTextArea = document.getElementById('modified-text');
+        
+        const temp = originalTextArea.value;
+        originalTextArea.value = modifiedTextArea.value;
+        modifiedTextArea.value = temp;
+    });
+
+    // Theme Toggle Functionality
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const body = document.body;
+
+    // Check for saved theme preference or use default
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        body.classList.add('dark-theme');
+    }
+
+    // Toggle theme when button is clicked
+    themeToggleBtn.addEventListener('click', () => {
+        body.classList.toggle('dark-theme');
+        
+        // Save preference to localStorage
+        if (body.classList.contains('dark-theme')) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    });
 }); 
