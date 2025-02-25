@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programmer's Toolbox</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Programmer's Toolbox</h1>
+            <p>A collection of useful tools for developers</p>
+        </header>
+
+        <div class="tools-container">
+            <div class="sidebar">
+                <ul class="tool-list">
+                    <li data-tool="url-encoder" class="active">URL Encoder/Decoder</li>
+                    <li data-tool="json-tool">JSON Escape/Unescape</li>
+                    <li data-tool="base64-tool">Base64 Encoder/Decoder</li>
+                    <li data-tool="html-tool">HTML Encoder/Decoder</li>
+                    <li data-tool="hash-tool">String Hash Generator</li>
+                    <li data-tool="timestamp-tool">Timestamp Converter</li>
+                    <li data-tool="markdown-tool">Markdown Preview</li>
+                    <li data-tool="color-converter">Color Converter</li>
+                    <li data-tool="case-converter">Text Case Converter</li>
+                    <li data-tool="json-formatter">JSON Formatter</li>
+                </ul>
+            </div>
+
+            <div class="tool-content">
+                <!-- URL Encoder/Decoder -->
+                <div id="url-encoder" class="tool-panel active">
+                    <h2>URL Encoder/Decoder</h2>
+                    <div class="input-group">
+                        <label for="url-input">Input:</label>
+                        <textarea id="url-input" placeholder="Enter text to encode or decode"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="url-encode-btn">Encode</button>
+                        <button id="url-decode-btn">Decode</button>
+                        <button class="copy-btn" data-target="url-output">Copy</button>
+                        <button class="clear-btn" data-target="url-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="url-output">Output:</label>
+                        <textarea id="url-output" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- JSON Escape/Unescape -->
+                <div id="json-tool" class="tool-panel">
+                    <h2>JSON Escape/Unescape</h2>
+                    <div class="input-group">
+                        <label for="json-input">Input:</label>
+                        <textarea id="json-input" placeholder="Enter JSON string to escape or unescape"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="json-escape-btn">Escape</button>
+                        <button id="json-unescape-btn">Unescape</button>
+                        <button class="copy-btn" data-target="json-output">Copy</button>
+                        <button class="clear-btn" data-target="json-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="json-output">Output:</label>
+                        <textarea id="json-output" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- Base64 Encoder/Decoder -->
+                <div id="base64-tool" class="tool-panel">
+                    <h2>Base64 Encoder/Decoder</h2>
+                    <div class="input-group">
+                        <label for="base64-input">Input:</label>
+                        <textarea id="base64-input" placeholder="Enter text to encode or decode"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="base64-encode-btn">Encode</button>
+                        <button id="base64-decode-btn">Decode</button>
+                        <button class="copy-btn" data-target="base64-output">Copy</button>
+                        <button class="clear-btn" data-target="base64-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="base64-output">Output:</label>
+                        <textarea id="base64-output" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- HTML Encoder/Decoder -->
+                <div id="html-tool" class="tool-panel">
+                    <h2>HTML Encoder/Decoder</h2>
+                    <div class="input-group">
+                        <label for="html-input">Input:</label>
+                        <textarea id="html-input" placeholder="Enter HTML to encode or decode"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="html-encode-btn">Encode</button>
+                        <button id="html-decode-btn">Decode</button>
+                        <button class="copy-btn" data-target="html-output">Copy</button>
+                        <button class="clear-btn" data-target="html-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="html-output">Output:</label>
+                        <textarea id="html-output" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- String Hash Generator -->
+                <div id="hash-tool" class="tool-panel">
+                    <h2>String Hash Generator</h2>
+                    <div class="input-group">
+                        <label for="hash-input">Input:</label>
+                        <textarea id="hash-input" placeholder="Enter text to hash"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="md5-btn">MD5</button>
+                        <button id="sha1-btn">SHA-1</button>
+                        <button id="sha256-btn">SHA-256</button>
+                        <button class="copy-btn" data-target="hash-output">Copy</button>
+                        <button class="clear-btn" data-target="hash-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="hash-output">Output:</label>
+                        <textarea id="hash-output" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- Timestamp Converter -->
+                <div id="timestamp-tool" class="tool-panel">
+                    <h2>Timestamp Converter</h2>
+                    <div class="timestamp-section">
+                        <h3>Current Time</h3>
+                        <div class="timestamp-format-toggle">
+                            <label>Format:</label>
+                            <div class="toggle-group">
+                                <button id="seconds-format-btn" class="toggle-btn active">Seconds</button>
+                                <button id="milliseconds-format-btn" class="toggle-btn">Milliseconds</button>
+                            </div>
+                        </div>
+                        <div class="current-time">
+                            <div class="time-display">
+                                <span id="current-timestamp">Loading...</span>
+                                <button class="copy-btn" data-target="current-timestamp">Copy</button>
+                            </div>
+                            <div class="time-display">
+                                <span id="current-datetime">Loading...</span>
+                                <button class="copy-btn" data-target="current-datetime">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="timestamp-section">
+                        <h3>Timestamp to Date</h3>
+                        <div class="input-group">
+                            <label for="timestamp-input">Timestamp:</label>
+                            <input type="text" id="timestamp-input" placeholder="Enter timestamp">
+                            <div class="timestamp-type-selector">
+                                <label><input type="radio" name="timestamp-type" value="seconds" checked> Seconds</label>
+                                <label><input type="radio" name="timestamp-type" value="milliseconds"> Milliseconds</label>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button id="convert-timestamp-btn">Convert</button>
+                            <button class="clear-btn" data-target="timestamp-input">Clear</button>
+                        </div>
+                        <div class="output-group">
+                            <label for="timestamp-output">Date and Time:</label>
+                            <input type="text" id="timestamp-output" readonly>
+                            <button class="copy-btn" data-target="timestamp-output">Copy</button>
+                        </div>
+                    </div>
+                    
+                    <div class="timestamp-section">
+                        <h3>Date to Timestamp</h3>
+                        <div class="input-group">
+                            <label for="date-input">Date and Time:</label>
+                            <input type="datetime-local" id="date-input">
+                        </div>
+                        <div class="button-group">
+                            <button id="convert-date-btn">Convert</button>
+                            <button class="clear-btn" data-target="date-input">Clear</button>
+                        </div>
+                        <div class="output-group">
+                            <label>Timestamp:</label>
+                            <div class="timestamp-outputs">
+                                <div class="timestamp-output-item">
+                                    <label>Seconds:</label>
+                                    <input type="text" id="date-output-seconds" readonly>
+                                    <button class="copy-btn" data-target="date-output-seconds">Copy</button>
+                                </div>
+                                <div class="timestamp-output-item">
+                                    <label>Milliseconds:</label>
+                                    <input type="text" id="date-output-milliseconds" readonly>
+                                    <button class="copy-btn" data-target="date-output-milliseconds">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Converter -->
+                <div id="color-converter" class="tool-panel">
+                    <h2>Color Converter</h2>
+                    <div class="color-preview"></div>
+                    <div class="input-group">
+                        <label for="color-input">Input:</label>
+                        <input type="text" id="color-input" placeholder="Enter HEX, RGB, or HSL color">
+                        <input type="color" id="color-picker">
+                    </div>
+                    <div class="button-group">
+                        <button id="convert-color-btn">Convert</button>
+                        <button class="clear-btn" data-target="color-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <div class="color-output">
+                            <label>HEX:</label>
+                            <input type="text" id="hex-output" readonly>
+                            <button class="copy-btn" data-target="hex-output">Copy</button>
+                        </div>
+                        <div class="color-output">
+                            <label>RGB:</label>
+                            <input type="text" id="rgb-output" readonly>
+                            <button class="copy-btn" data-target="rgb-output">Copy</button>
+                        </div>
+                        <div class="color-output">
+                            <label>HSL:</label>
+                            <input type="text" id="hsl-output" readonly>
+                            <button class="copy-btn" data-target="hsl-output">Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Case Converter -->
+                <div id="case-converter" class="tool-panel">
+                    <h2>Text Case Converter</h2>
+                    <div class="input-group">
+                        <label for="case-input">Input:</label>
+                        <textarea id="case-input" placeholder="Enter text to convert case"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="uppercase-btn">UPPERCASE</button>
+                        <button id="lowercase-btn">lowercase</button>
+                        <button id="capitalize-btn">Capitalize</button>
+                        <button id="camel-case-btn">camelCase</button>
+                        <button id="pascal-case-btn">PascalCase</button>
+                        <button id="snake-case-btn">snake_case</button>
+                        <button id="kebab-case-btn">kebab-case</button>
+                        <button class="copy-btn" data-target="case-output">Copy</button>
+                        <button class="clear-btn" data-target="case-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="case-output">Output:</label>
+                        <textarea id="case-output" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- JSON Formatter -->
+                <div id="json-formatter" class="tool-panel">
+                    <h2>JSON Formatter</h2>
+                    <div class="input-group">
+                        <label for="json-format-input">Input:</label>
+                        <textarea id="json-format-input" placeholder="Enter JSON to format"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="format-json-btn">Format</button>
+                        <button id="minify-json-btn">Minify</button>
+                        <button class="copy-btn" data-target="json-format-output">Copy</button>
+                        <button class="clear-btn" data-target="json-format-input">Clear</button>
+                    </div>
+                    <div class="output-group">
+                        <label for="json-format-output">Output:</label>
+                        <textarea id="json-format-output" readonly></textarea>
+                    </div>
+                </div>
+
+                <!-- Markdown Preview -->
+                <div id="markdown-tool" class="tool-panel">
+                    <h2>Markdown Preview</h2>
+                    <div class="markdown-container">
+                        <div class="markdown-input-container">
+                            <div class="input-header">
+                                <label for="markdown-input">Markdown:</label>
+                                <button class="clear-btn" data-target="markdown-input">Clear</button>
+                            </div>
+                            <textarea id="markdown-input" placeholder="Enter Markdown text here..."></textarea>
+                        </div>
+                        <div class="markdown-preview-container">
+                            <div class="preview-header">
+                                <label>Preview:</label>
+                                <button class="copy-btn" data-target="markdown-preview">Copy HTML</button>
+                            </div>
+                            <div id="markdown-preview" class="markdown-preview"></div>
+                        </div>
+                    </div>
+                    <div class="markdown-sample">
+                        <h3>Markdown Cheat Sheet</h3>
+                        <div class="markdown-examples">
+                            <div class="markdown-example">
+                                <code># Heading 1</code>
+                                <code>## Heading 2</code>
+                                <code>### Heading 3</code>
+                            </div>
+                            <div class="markdown-example">
+                                <code>**Bold text**</code>
+                                <code>*Italic text*</code>
+                                <code>~~Strikethrough~~</code>
+                            </div>
+                            <div class="markdown-example">
+                                <code>[Link](https://example.com)</code>
+                                <code>![Image](image.jpg)</code>
+                                <code>`Inline code`</code>
+                            </div>
+                            <div class="markdown-example">
+                                <code>- Bullet list</code>
+                                <code>1. Numbered list</code>
+                                <code>> Blockquote</code>
+                            </div>
+                            <div class="markdown-example">
+                                <code>```
+code block
+```</code>
+                                <code>---</code>
+                                <code>| Table | Header |
+| ------ | ------ |
+| Cell   | Cell   |</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Programmer's Toolbox - Created with ❤️ for developers</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
